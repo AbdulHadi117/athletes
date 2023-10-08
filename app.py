@@ -1,38 +1,48 @@
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import streamlit as st
 
+#$ Import necessary libraries
+import pandas as pd , streamlit as st
+import plotly.express as px , plotly.graph_objects as go
 
+#@ Read data from CSV files
+df = pd.read_csv(f'Richest Athletes (Richest Athletes 1990-2021).csv')
+dfo = pd.read_csv(f'Forbes Richest Athletes (Forbes Richest Athletes 1990-2021).csv')
+
+#$ Configure Streamlit app settings
 st.set_page_config(page_title='Dashboard',
                    page_icon='⚽',
                    layout='wide')
 
-df = pd.read_csv(f'Richest Athletes (Richest Athletes 1990-2021).csv')
-dfo = pd.read_csv(f'Forbes Richest Athletes (Forbes Richest Athletes 1990-2021).csv')
-
-##! SIDEBAR
+#! Create a sidebar
 with st.sidebar:
+
+    #@ Create title of sidebar
     st.title('HELLO THERE ! 👋')
     st.write('''
     - My name is Abdul Hadi. 
     - This is my Streamlit Web Application displaying the EDA i did on the dataset of FORBES RICHEST ATHLETES (1990-2021).
-    
              ''')
     st.markdown('---')
+    
+    #@ Radio button for viewing data
     st.header('WOULD YOU LIKE TO VIEW THE DATASET')
     a = st.radio('Select :',['Yes','No'],index=1)
     if 'Yes' in a:
         st.subheader('FILTER AND VIEW DATASET')
+        
+        #$ Slider and Multiselect buttons
         year = st.select_slider('Select Year :',options=df['Year'].unique())
         sport = st.multiselect('Select Sport :',options=df['Sport'].unique(),default=df['Sport'].unique())
+        
+        #$ Filter data according to selection
         df_selection= df.query(
             'Year == @year & Sport == @sport'
         )
         st.dataframe(df_selection)
     st.markdown('---')
+
+    #@ Selectbox for basic information
     st.header('WOULD YOU LIKE THE BASIC INFORMATION')
-    b = st.selectbox('PICK',['OVERVIEW','DESCRIPTIVE','NONE'],index=2)
+    b = st.selectbox('PICK',['OVERVIEW','DESCRIPTIVE','NONE'],index=2)   
     if 'OVERVIEW' in b:
             st.write('''                         
 - **Dimensions**: 1659 rows x 5 columns
@@ -41,7 +51,8 @@ with st.sidebar:
   2. **Nationality**: The nationalities of the athletes (object data type, 44 unique values).
   3. **Earnings**: The earnings of the athletes in millions of USD (FLoat data type, 477 unique values).
   4. **Year**: The year of data collection (Integer data type, 31 unique values).
-  5. **Sport**: The sport in which the athletes excel (object data type, 15 unique values).''')
+  5. **Sport**: The sport in which the athletes excel (object data type, 15 unique values).
+''')    
     elif 'DESCRIPTIVE' in b:
         col1,col2,col3 = st.columns([2,0.5,4])
         with col1:
@@ -57,11 +68,13 @@ with st.sidebar:
 - **50% Percentile**: $24 million USD
 - **75% Percentile**: $32 million USD
 - This gives a descriptive statistical approach to the dataset
-''')
+''')         
     else :
-         st.error("Please select an option")
+         st.error("Please select an option")    
     
-    st.markdown('---')      
+    st.markdown('---')
+
+    #@ Purpose of dashboard and main questions
     st.markdown('''
 - In this Dashboard, You can view different plots and charts that answer some general questions like
     1. Which Sports have the highest number of Athletes ?
@@ -70,54 +83,49 @@ with st.sidebar:
     4. What is the distribution and frequency in Earnings of Athletes ?
     5. Is there a Positive or Negative Correlation between Earnings and Sports ?          
 ''')
-
-
-##! MAINPAGE
+    
+#! Main dashboard title and information
 st.title('***RICHEST ATHLETES 1990-2021*** 💸⚽')
 st.header('CREATED BY :  **_ABDUL HADI_**')
 st.markdown('---')
-col_1 , col_2, col_3 = st.columns([1.2,0.5,3])
 
+#! Create columns for displaying different plots and charts
+col_1, col_2, col_3 = st.columns([1.2, 0.5, 3])
 
-##! COLUMN 1
 with col_1:
-
-#todo PIE CHART
-###* Sorting Values W.R.T Earnings
-    df_3 = df.sort_values(by='Earnings',ascending=False)
-###* Reseting the index and dropping previous.
+#$ Plot the pie chart for the top 8 sports with the most athletes    
+    
+    #@ Sort and modify data
+    df_3 = df.sort_values(by='Earnings', ascending=False)
     df_3 = df_3.reset_index()
     df_3 = df_3.drop(columns='index')
-###* Getting the top 8 sports with most athletes
     top = df_3.Sport.value_counts()
     sport = top.nlargest(8)
-###* converting this data into a dictionary
     sport = sport.to_dict()
-###* Creating labels and values
-    values= sport.values()
+    values = sport.values()
     names = sport.keys()
-###* Plotting PieChart
-    fig_pie = px.pie(values=sport,names=names,
-             template='plotly_dark',width=500,height=650)
+
+    #@ Plot the chart
+    fig_pie = px.pie(values=sport, names=names, template='plotly_dark', width=500, height=650)
     fig_pie.update_traces(
-        textposition = 'inside',    textinfo='percent+label',
-        marker=dict( line=dict(color='#000000', width=1))
+        textposition='inside', textinfo='percent+label',
+        marker=dict(line=dict(color='#000000', width=1))
     )
     fig_pie.update_layout(
-        title_text = '<b>TOP 8 SPORTS WITH MOST ATHLETES</b>',
-        title_font_size = 20    
+        title_text='<b>TOP 8 SPORTS WITH MOST ATHLETES</b>',
+        title_font_size=20
     )
     st.plotly_chart(fig_pie)
 
-#todo BAR CHART
-###* Sorting Values W.R.T Earnings
+#$ Plot the bar chart for the top 25 highest paid athletes
+
+    #@ Sort and modify data
     df_1=df.sort_values(by='Earnings',ascending=False)
-###* Reseting the index and dropping previous.
     df_1 = df_1.reset_index()
     df_1 = df_1.drop(columns='index')
-###* Getting TOP 25 Highest Values
     df_1 = df_1.head(25)
-###* Plotting a BarGraph 
+
+    #@ Plot the chart
     fig_bar = px.bar(df_1,x='Name',y='Earnings',
                  hover_data=df_1,range_y=(0,250),color_discrete_sequence=['#0083B8'])
     fig_bar.update_layout(
@@ -129,11 +137,11 @@ with col_1:
             ,yaxis=(dict(showgrid=False)))
     st.plotly_chart(fig_bar)
 
-
-##! COLUMN 3
 with col_3:
-     
-###* Spiliting the data of Sports with atleast 100 or more Values
+
+#$ Plot the area chart showing the growth in earnings for different sports
+    
+    #@ Filtee data for top sports
     df_basket = df.loc[df['Sport']=='Basketball']
     df_base = df.loc[df['Sport']=='Baseball']
     df_foot = df.loc[df['Sport']=='Football']
@@ -143,16 +151,13 @@ with col_3:
     df_golf = df.loc[df['Sport']=='Golf']
     df_box = df.loc[df['Sport']=='Boxing']
     df_2 = pd.concat([df_basket,df_base,df_foot,df_ten,df_soc,df_rac,df_golf,df_box],axis=0)
-
-# ###* Sorting Values W.R.T Earnings
+    
+    #@ Sort and modify data 
     df_2 = df_2.sort_values(by='Earnings',ascending=False)
-
-# ###* Reseting the index and dropping previous.
     df_2 = df_2.reset_index()
     df_2 = df_2.drop(columns='index')
-
-
-###* Plotting LineArea Chart
+    
+    #@ Plot the chart
     fig_line = px.area(df_2,x='Year',y='Earnings',color='Sport',
                   facet_col='Sport',facet_col_wrap=4,range_y=(0,200),
                   markers=True,hover_data=df_2,template='plotly_dark')
@@ -164,20 +169,21 @@ with col_3:
     fig_line.update_xaxes(
         tickvals=[1990,2005,2020]
     )
-
     st.plotly_chart(fig_line)
 
-    col_a,col_b = st.columns(2)
+#! Create two columns for displaying histograms and scatter plots
+    col_a, col_b = st.columns(2)
+
+#$ Plot the histogram for the distribution of earnings
     with col_a:
-#todo HISTOGRAM
-###* Sorting Values W.R.T Earnings
+
+        #@ Sort and modify data
         df_5 =df.sort_values(by='Earnings',ascending=False)
-###* Reseting the index and Dropping previous
         df_5 = df_5.reset_index()
         df_5 = df_5.drop(columns='index')
-###* Selecting Color
         color= px.colors.qualitative.Light24
-###* Plotting Histogram
+
+        #@ Plot the chart
         fig_hist = px.histogram(df_5,x='Earnings',log_x=True,marginal='box',
                    template='plotly_dark',color_discrete_sequence=color,hover_data=df_5)
         fig_hist.update_layout(bargap=0.05,width=600,height=500,
@@ -185,33 +191,21 @@ with col_3:
                            ,plot_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_hist)
 
+#$ Plot the scatter plot showing the correlation of earnings along the years
     with col_b:
-#todo SCATTERPLOT
-###* Sorting Values W.R.T Earnings
+    
+        #@ Sort and modify data
         df_4 = df.sort_values(by='Earnings',ascending=False)
-###* Sorting Values W.R.T Year
         df_4 = df_4.sort_values(by='Year')
-###* Resetting the index and dropping previous
         df_4 = df_4.reset_index()
         df_4 = df_4.drop(columns='index')
-###* Selecting Color
-        colors = px.colors.qualitative.Light24
-###* Plotting ScatterChart
+
+        #@ Plot the chart
+        colors = px.colors.qualitative.Light24        
         fig_scatter = px.scatter(df_4,x='Year',y='Earnings',
                     size='Earnings',color='Sport',hover_data=df_4,template='plotly_dark',
-                    size_max=50,color_discrete_sequence=colors)
+                    size_max=50,color_discrete_sequence=colors)                                                        
         fig_scatter.update_layout(
             title='<b>POSITIVE CORRELATION OF EARNINGS ALONG THE YEARS </b>',width=700,height=500
         ,plot_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig_scatter)
-
-
-# ##! CLEANING THE SITE
-# hide_st_style = """
-#                 <style>
-#                 #MainMenu {visibility: hidden;}
-#                 footer {visibilty: hidden;}
-#                 header {visibility: hidden;}
-#                 </style>
-#                 """
-# st.markdown(hide_st_style, unsafe_allow_html=True)
